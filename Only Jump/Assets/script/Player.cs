@@ -1,79 +1,95 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
 
- 
 public class Player : MonoBehaviour
 {
-    //Vector3 posi = transform.position;    
+    //Vector3 pos = transform.position;    
     private Rigidbody rb;
-    float speed = 3.0f;
-    //private int upForce;
+    public float speed = 3.0f;
+    public float jumpPower = 400.0f; // ジャンプ力
     private bool isGround;
-    private float jumpPower = 400.0f; //ジャンプ力
-    public  Text text;
- 
- 
+    private Player player;
+    public Text text;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        //this.rb = GetComponent<Rigidbody>();
     }
- 
+
     void Update()
     {
-        // Wキー（前方移動）
+        // プレイヤーの移動
+        Vector3 movement = new Vector3();
+
         if (Input.GetKey(KeyCode.W))
         {
-            rb.velocity = transform.forward * speed;
+            movement.z -= 1;
         }
-        // Sキー（後方移動）
         if (Input.GetKey(KeyCode.S))
         {
-            rb.velocity = - transform.forward * speed;
+            movement.z += 1;
         }
-        // Dキー（右移動）
         if (Input.GetKey(KeyCode.D))
         {
-            rb.velocity = - transform.right * speed;
+            movement.x -= 1;
         }
-        // Aキー（左移動）
         if (Input.GetKey(KeyCode.A))
         {
-            rb.velocity = transform.right * speed;
+            movement.x += 1;
         }
-        // スペースが押されたらジャンプさせる
-        if (Input.GetKeyDown(KeyCode.Space)&& isGround)
-        {
-            rb.AddForce(transform.up * jumpPower);
-        }
-        GameObject player = GameObject.Find("Player");
-        Vector3 tmp = new Vector3(player.transform.position.x, player.transform.position.y, player.transform.position.z);
-        Debug.Log(tmp);
 
-        if (tmp.y < 0)
+        // 移動速度を加算
+        rb.AddForce(movement * speed);
+
+        // スペースキーが押されたらジャンプ
+
+        Debug.Log($"Space: {Input.GetKeyDown(KeyCode.Space)} && isGround {isGround}");
+
+        if (Input.GetKeyDown(KeyCode.Space) && isGround)
         {
-            SceneManager.LoadScene("end");
+            Debug.Log(" jaump: ");
+            rb.AddForce(Vector3.up * jumpPower);
+            isGround = false; // ジャンプ中は地面にいないと判断
+        }
+
+        // プレイヤーのポジションを取得し、コンソールに出力
+        Vector3 playerPosition = transform.position;
+        //Debug.Log("Player Position: " + playerPosition);
+
+        // プレイヤーの位置をText UIに表示（オプション）
+        if (text != null)
+        {
+            text.text = "Player Position: " + playerPosition.ToString();
+        }
+        //y座標が0以下になった場合にEndシーンへの移動
+        if ( playerPosition.y <  0)
+        {
+            SceneManager.LoadScene("End");
         }
     }
- 
-    void OnTriggerStay(Collider other)
+
+    void OnCollisionStay(Collision other)
     {
-        if(other.CompareTag("Plane"))
+        //地上にいる場合の
+        if(other.gameObject.CompareTag("Plane"))
         {
+            Debug.Log("Player is on the ground.");
             isGround = true;
         }
-    
-
-
     }
- 
-    void OnTriggerExit(Collider other)
+
+    void OnCollisionExit(Collision other)
     {
-        if(other.CompareTag("Plane"))
-           isGround = false;
+        //空中にいる間のboolの判定を取る
+        if(other.gameObject.CompareTag("Plane"))
+        {
+            Debug.Log("Player left the ground.");
+            isGround = false;
+        }
     }
-   
 }
