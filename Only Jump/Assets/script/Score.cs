@@ -17,6 +17,6 @@ public class Score : MonoBehaviour
     public void ShowRate()
     {
 
-        text.text = $"{ScoreMaker._score:P0}";
+        text.text = $"{Mathf.FloorToInt(ScoreMaker._score)}";
     }
 }
